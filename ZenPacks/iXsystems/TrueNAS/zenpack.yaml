@@ -1,0 +1,29 @@
+name: ZenPacks.iXsystems.TrueNAS
+
+classes:
+  TrueNASDevice:
+    base: [zenpacklib.Device]
+    label: TrueNAS
+
+device_classes:
+  /Server/Linux/TrueNAS:
+    zProperties:
+      zPythonClass: ZenPacks.iXsystems.TrueNAS.TrueNASDevice
+      zSnmpMonitorIgnore: false
+      zCollectorPlugins:
+        - iXsystems.snmp.TrueNASDataset
+        - iXsystems.snmp.TrueNASPool
+        - zenoss.snmp.NewDeviceMap
+        - zenoss.snmp.DeviceMap
+        - zenoss.snmp.InterfaceMap
+        - HPDeviceMap
+        - DellDeviceMap
+        - zenoss.snmp.RouteMap
+        - zenoss.snmp.IpServiceMap
+        - zenoss.snmp.HRFileSystemMap
+        - zenoss.snmp.HRSWRunMap
+        - zenoss.snmp.CpuMap
+        - zenoss.snmp.InterfaceMap
+        - HPCPUMap
+        - DellCPUMap
+        - DellPCIMap
