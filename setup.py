@@ -3,7 +3,7 @@
 # or saved.  Do not modify them directly here.
 # NB: PACKAGES is deprecated
 NAME = "ZenPacks.iXsystems.TrueNAS"
-VERSION = "0.9.0"
+VERSION = "1.0.0"
 AUTHOR = "Noushi Faycal"
 LICENSE = ""
 NAMESPACE_PACKAGES = ['ZenPacks', 'ZenPacks.iXsystems']
