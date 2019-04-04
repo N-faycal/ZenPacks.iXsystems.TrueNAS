@@ -8,8 +8,9 @@ import json
 RETURN_OK = True
 RETURN_KO = False
 URL_PATH = 'http://{0}/api/v1.0/system/alert'
-SEVERITY_MAPPING = {'CRIT':5, 'WARN':3, 'OK':2}
+SEVERITY_MAPPING = {'FATAL':5, 'CRIT':4, 'WARN':3, 'INFO':2, 'OK':0}
 SEVERITY_PRINTING_MAPPING = {5:'criticalAlerts', 3:'warningAlerts', 2:'infoAlerts', 0:'clearedAlerts'}
+DEFAULT_SEVERITY = 5
 EVENT_CLASS = '/TrueNAS/Alert'
 
 class AlertMonitor(object):
@@ -39,7 +40,7 @@ class AlertMonitor(object):
       sys.exit(1)
     if result.ok:
       try:
-        self.alerts = json.loads(result.text)
+        self.alerts = json.loads(result.text)['objects']
       except:
         print 'Could not load server response into json object.\n{0}'.format(sys.exc_info())
         sys.exit(1)
@@ -53,7 +54,7 @@ class AlertMonitor(object):
     '''
     '''
     for alert in self.alerts:
-      event = {'summary':alert['message'], 'severity':SEVERITY_MAPPING[alert['level']], 'eventKey':alert['id'], 'eventClass':EVENT_CLASS}
+      event = {'summary':alert['message'], 'severity':SEVERITY_MAPPING.get(alert['level'], DEFAULT_SEVERITY), 'eventKey':alert['id'], 'eventClass':EVENT_CLASS}
       if alert['dismissed']:
         event['severity'] = 0
       self.events.append(event)
@@ -90,3 +91,6 @@ def main():
 
 if __name__ == '__main__':
   main()
+
+
+

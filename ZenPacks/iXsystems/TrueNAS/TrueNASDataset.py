@@ -1,35 +1,37 @@
-from Products.ZenModel.DeviceComponent import DeviceComponent
-from Products.ZenModel.ManagedEntity import ManagedEntity
-from Products.ZenModel.ZenossSecurity import ZEN_CHANGE_DEVICE
-from Products.ZenRelations.RelSchema import ToManyCont, ToOne
- 
- 
-class TrueNASDataset(DeviceComponent, ManagedEntity):
-    meta_type = portal_type = 'TrueNASDataset'
- 
-    size = -1
-    _properties = ManagedEntity._properties + (
-        {'id': 'size', 'type': 'int'},
-        )
- 
-    _relations = ManagedEntity._relations + (
-        ('TrueNAS_Device', ToOne(ToManyCont,
-            'ZenPacks.iXsystems.TrueNAS.TrueNASDevice',
-            'TrueNAS_Datasets',
-            )),
-        )
- 
-    factory_type_information = ({
-        'actions': ({
-            'id': 'perfConf',
-            'name': 'Template',
-            'action': 'objTemplates',
-            'permissions': (ZEN_CHANGE_DEVICE,),
-            },),
-        },)
- 
-    def device(self):
-        return self.TrueNAS_Device()
- 
-    def getRRDTemplateName(self):
-        return 'TrueNASDataset'
+from . import schema
+from Products.ZenUtils.Utils import convToUnits
+from math import isnan
+
+class TrueNASDataset(schema.TrueNASDataset):
+
+    def usage(self, givenUsage = None):
+        if givenUsage:
+          usage = givenSize
+        else: 
+          usedSize = self.getUsedSize()
+          usage = 100 * ((float(usedSize) * self.allocationUnit) / float(self.size))
+        return '{:.2f}%'.format(usage)
+
+    '''
+    def size(self, givenSize = None):
+      if givenSize: size = givenSize
+      else:
+        size = self.getAvailableSize()
+      return convToUnits(size)
+    '''
+
+    def getUsedSize(self, default = None):
+        size = self.cacheRRDValue('datasetUsed_datasetUsed', default)
+        if size is None or isnan(size):
+          size = float('nan')
+	return size
+
+    '''
+    def getAvailableSize(self, default = None):
+        size = self.cacheRRDValue('datasetAvailable_datasetAvailable', default)
+        if size is None or isnan(size):
+          size = float('nan')
+        return size
+    '''
+
+

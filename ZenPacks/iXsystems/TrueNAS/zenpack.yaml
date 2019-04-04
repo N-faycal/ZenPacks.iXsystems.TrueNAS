@@ -1,13 +1,66 @@
 name: ZenPacks.iXsystems.TrueNAS
-
+zProperties:
+  zTrueNASIgnoreDatasets:
+    category: TrueNAS
+    type: lines
+    default: ['freenas-boot/ROOT/Initial-Install', 'freenas-boot/ROOT/default']
+  zTrueNASIgnorePools:
+    category: TrueNAS
+    type: lines
+    default: ['freenas-boot']
+  zTrueNASLogin:
+    default: root
+  zTrueNASPass:
+    default: niko
 classes:
   TrueNASDevice:
     base: [zenpacklib.Device]
-    label: TrueNAS
+    label: TrueNASDevice
+   
 
+  TrueNASDataset:
+    base: [zenpacklib.Component]
+    label: TrueNASDataset
+    monitoring_templates: ['TrueNASDataset']
+    properties:
+      allocationUnit:
+        label: allocationUnit
+        type: int
+      size:
+        label: size
+        renderer: Zenoss.render.bytesString
+        type: int
+      usage:
+        label: Usage
+        api_only: true
+        api_backendtype: method
+
+  TrueNASPool:
+    base: [zenpacklib.Component]
+    label: TrueNASPool
+    monitoring_templates: ['TrueNASPool']
+    properties:
+      size:
+        label: size
+        renderer: Zenoss.render.bytesString
+        type: int
+      allocationUnit:
+        label: allocationUnit
+        type: int
+      usage:
+        label: usage
+        api_only: true
+        api_backendtype: method
+      health:
+        label: health
+        type: string
+       
+        datapoint: zpoolHealth_zpoolHealth
+        datapoint_default: 'unknown'
+        enum: {0: 'online', 1: 'degraded', 2: 'faulted', 3: 'offline', 4: 'unavailable', 5: 'removed'}
 device_classes:
   /Server/Linux/TrueNAS:
-    zProperties:
+    zProperties:      
       zPythonClass: ZenPacks.iXsystems.TrueNAS.TrueNASDevice
       zSnmpMonitorIgnore: false
       zCollectorPlugins:
@@ -27,3 +80,8 @@ device_classes:
         - HPCPUMap
         - DellCPUMap
         - DellPCIMap
+
+class_relationships:
+    - TrueNASDevice 1:MC TrueNASDataset
+    - TrueNASDevice 1:MC TrueNASPool
+

@@ -4,19 +4,21 @@ from Products.DataCollector.plugins.CollectorPlugin import (
  
  
 class TrueNASPool(SnmpPlugin):
-    relname = 'TrueNAS_Pools'
+    relname = 'trueNASPools'
     modname = 'ZenPacks.iXsystems.TrueNAS.TrueNASPool'
 
     deviceProperties = SnmpPlugin.deviceProperties + ('zTrueNASIgnorePools', 'zTrueNASIgnoreDatasets',)
  
     snmpGetTableMaps = (
         GetTableMap(
-            'poolTable', '1.3.6.1.4.1.25359.1.1', {
-                '.1': 'poolId',
+            'poolTable', '1.3.6.1.4.1.50536.1.1.1', {
+                '.1.2': 'zpoolDescr',
                 # '.2': 'availableKB',
+                '.1.3': 'zpoolAllocationUnit',
+		'.1.6': 'zpoolAvailable',
                 # '.3': 'usedKB',
-                '.4': 'poolHealth',
-                '.5': 'sizeKB',
+                '.1.7': 'zpoolHealth',
+                '.1.4': 'zpoolSize',
                 # '.6': 'opRead',
 
                 }
@@ -28,8 +30,10 @@ class TrueNASPool(SnmpPlugin):
  
       rm = self.relMap()
       for snmpindex, row in pools.items():
+        allocationUnit = int(row.get('zpoolAllocationUnit'))
+        size = int(row.get('zpoolSize')) * allocationUnit
         ignore = False
-        name = row.get('poolId')
+        name = row.get('zpoolDescr')
         toIgnorePools = getattr(device,'zTrueNASIgnorePools', [])
         for toIgnorePool in toIgnorePools:
           if toIgnorePool in name:
@@ -40,8 +44,13 @@ class TrueNASPool(SnmpPlugin):
             'id': self.prepId(name),
             'title': name,
             'snmpindex': snmpindex.strip('.'),
-            'size': row.get('sizeKB') * 1024,
-            'health': row.get('poolHealth'),
+            'size': size,
+            'allocationUnit':allocationUnit,
+            'health': row.get('zpoolHealth'),
             }))
  
       return rm
+
+
+
+

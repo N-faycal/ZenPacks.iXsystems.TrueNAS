@@ -1,37 +1,24 @@
-from Products.ZenModel.DeviceComponent import DeviceComponent
-from Products.ZenModel.ManagedEntity import ManagedEntity
-from Products.ZenModel.ZenossSecurity import ZEN_CHANGE_DEVICE
-from Products.ZenRelations.RelSchema import ToManyCont, ToOne
+from . import schema
+from Products.ZenUtils.Utils import convToUnits
+from math import isnan
  
  
-class TrueNASPool(DeviceComponent, ManagedEntity):
-    meta_type = portal_type = 'TrueNASPool'
- 
-    size = -1
-    health = 'N/A' 
-    _properties = ManagedEntity._properties + (
-        {'id': 'size', 'type': 'int'},
-        {'id': 'health', 'type': 'str'},
-        )
- 
-    _relations = ManagedEntity._relations + (
-        ('TrueNAS_Device', ToOne(ToManyCont,
-            'ZenPacks.iXsystems.TrueNAS.TrueNASDevice',
-            'TrueNAS_Pools',
-            )),
-        )
- 
-    factory_type_information = ({
-        'actions': ({
-            'id': 'perfConf',
-            'name': 'Template',
-            'action': 'objTemplates',
-            'permissions': (ZEN_CHANGE_DEVICE,),
-            },),
-        },)
- 
-    def device(self):
-        return self.TrueNAS_Device()
- 
-    def getRRDTemplateName(self):
-        return 'TrueNASPool'
+class TrueNASPool(schema.TrueNASPool):
+    def usage(self, givenUsage = None):
+        if givenUsage:
+          usage = givenSize
+          return 'N/A'
+        else: 
+          usedSize = self.getUsedSize()
+          if usedSize == float('nan'): return 'N/A'
+          usage = 100 * ((float(usedSize) * self.allocationUnit) / float(self.size))
+        return '{:.2f}%'.format(usage)
+
+
+    def getUsedSize(self, default = None):
+        size = self.cacheRRDValue('zpoolUsed_zpoolUsed', default)
+        if size is None or isnan(size):
+          size = float('nan')
+	return size
+
+
